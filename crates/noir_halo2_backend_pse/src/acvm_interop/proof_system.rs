@@ -97,6 +97,13 @@ impl ProofSystemCompiler for PseHalo2 {
             _marker: PhantomData::<Fr>,
         };
 
+        let dimension = DimensionMeasurement::measure(&translator).unwrap();
+        let k = dimension.k();
+        println!("[dimension] instance: {}", dimension.instance());
+        println!("[dimension] advice: {}", dimension.advice());
+        println!("[dimension] fixed: {}", dimension.fixed());
+        println!("[dimension] k: {}", k);
+
         let proof = halo2_prove(translator, &params, &pk, &instance[..]);
 
         Ok(proof)

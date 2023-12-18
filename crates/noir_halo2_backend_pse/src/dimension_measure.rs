@@ -41,6 +41,18 @@ impl Dimension {
             - 1
     }
 
+    pub(crate) fn instance(&self) -> u64 {
+        self.instance
+    }
+
+    pub(crate) fn advice(&self) -> u64 {
+        self.advice
+    }
+
+    pub(crate) fn fixed(&self) -> u64 {
+        self.fixed
+    }
+
     fn _advice_range(&self) -> RangeInclusive<usize> {
         0..=self.advice as usize
     }
