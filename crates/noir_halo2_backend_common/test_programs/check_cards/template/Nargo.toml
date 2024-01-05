@@ -1,0 +1,7 @@
+[package]
+authors = [""]
+name = "check_cards"
+type = "bin"
+compiler_version = "0.19.4"
+
+[dependencies]
