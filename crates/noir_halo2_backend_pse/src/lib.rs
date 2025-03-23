@@ -2,10 +2,14 @@ mod acvm_interop;
 mod dimension_measure;
 
 mod assigned_map;
+mod circom;
+mod circom_circuit;
+mod circom_witness;
 mod circuit_translator;
 mod constrains;
 mod halo2_params;
 mod halo2_plonk_api;
+mod r1cs_reader;
 mod tests;
 #[cfg(target_family = "wasm")]
 mod wasm;
