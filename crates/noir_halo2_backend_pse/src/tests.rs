@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod test {
-    use crate::{circuit_translator::NoirHalo2Translator, dimension_measure::DimensionMeasurement};
+    use crate::{
+        circom, circuit_translator::NoirHalo2Translator, dimension_measure::DimensionMeasurement,
+    };
     use acvm::{acir::native_types::Witness, FieldElement};
     use noir_halo2_backend_common::test_helpers::build_artifacts;
     use pse_halo2wrong::{
@@ -11,6 +13,46 @@ mod test {
         },
     };
     use std::marker::PhantomData;
+
+    #[test]
+    fn read_r1cs() {
+        let r1cs = "/Users/work/git/halo2/halo2_backend/example/circuit.r1cs";
+        let circuit = circom::get_circuit(r1cs).unwrap();
+    }
+
+    #[test]
+    fn read_wtns() {
+        let wtns = "/Users/work/git/halo2/halo2_backend/example/circuit_js/witness.wtns";
+        let w = circom::get_witness(wtns);
+        for (i, f) in w {
+            println!("{:?}: {:?}", i, f);
+        }
+    }
+
+    #[test]
+    fn circom() {
+        // let r1cs = "/Users/work/git/circom-to-acir/example/circuit.r1cs";
+        // let wtns = "/Users/work/git/circom-to-acir/example/circuit_js/witness.wtns";
+        let r1cs = "/Users/work/git/halo2/halo2_backend/example/circuit.r1cs";
+        let wtns = "/Users/work/git/halo2/halo2_backend/example/circuit_js/witness.wtns";
+        // get circuit
+        let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
+
+        for (i, f) in witness_values.clone() {
+            println!("{:?}: {:?}", i, f);
+        }
+
+        // instantiate halo2 circuit
+        let translator =
+            NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
+        let dimension = DimensionMeasurement::measure(&translator).unwrap();
+
+        let instance = vec![vec![]];
+
+        // run mock prover expecting success
+        let prover = MockProver::run(dimension.k(), &translator, instance).unwrap();
+        assert_eq!(prover.verify(), Ok(()));
+    }
 
     #[test]
     fn test_public_io_circuit_success() {
