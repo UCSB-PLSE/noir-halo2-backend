@@ -15,10 +15,10 @@ mod test {
     use std::marker::PhantomData;
 
     #[test]
-    fn read_r1cs() {
-        let r1cs = "/Users/work/git/halo2/halo2_backend/example/circuit.r1cs";
-        let circuit = circom::get_circuit(r1cs).unwrap();
-    }
+    // fn read_r1cs() {
+    //     let r1cs = "/Users/work/git/halo2/halo2_backend/example/circuit.r1cs";
+    //     let circuit = circom::get_circuit(r1cs, 0).unwrap();
+    // }
 
     #[test]
     fn read_wtns() {
@@ -33,15 +33,16 @@ mod test {
     fn circom() {
         // let r1cs = "/Users/work/git/circom-to-acir/example/circuit.r1cs";
         // let wtns = "/Users/work/git/circom-to-acir/example/circuit_js/witness.wtns";
-        let r1cs = "/Users/work/git/halo2/halo2_backend/example/circuit.r1cs";
-        let wtns = "/Users/work/git/halo2/halo2_backend/example/circuit_js/witness.wtns";
+        let r1cs = "example/num2bits/circuit.r1cs";
+        let wtns = "example/num2bits/circuit_js/witness.wtns";
         // get circuit
         let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
 
         for (i, f) in witness_values.clone() {
             println!("{:?}: {:?}", i, f);
         }
-
+        
+        println!("circuit: {:?}", circuit);
         // instantiate halo2 circuit
         let translator =
             NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
