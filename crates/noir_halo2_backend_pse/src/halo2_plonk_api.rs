@@ -150,18 +150,24 @@ impl Default for NoirConstraint {
 
 impl NoirConstraint {
     pub(crate) fn set_linear_term(&mut self, x: FieldElement, witness: i32) {
-        if self.a == 0 || self.a == witness {
+        // println!("[set_linear_term] x: {:?}, witness: {:?}", x, witness);
+        // println!("[set_linear_term] self: {:?}", self);
+        if self.ql == FieldElement::zero() && (self.a == 0 || self.a == witness) {
+            // if self.a == 0 || self.a == witness {
             self.a = witness;
             self.ql = x;
-        } else if self.b == 0 || self.b == witness {
+        } else if self.qr == FieldElement::zero() && (self.b == 0 || self.b == witness) {
+            // } else if self.b == 0 || self.b == witness {
             self.b = witness;
             self.qr = x;
-        } else if self.c == 0 || self.c == witness {
+        } else if self.qo == FieldElement::zero() && (self.c == 0 || self.c == witness) {
+            // } else if self.c == 0 || self.c == witness {
             self.c = witness;
             self.qo = x;
         } else {
             unreachable!("Cannot assign linear term to a constrain of width 3");
         }
+        // println!("[set_linear_term] self: {:?}", self);
     }
 }
 

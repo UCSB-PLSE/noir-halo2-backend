@@ -17,7 +17,7 @@ pub fn get_circuit(r1cs: &str, num_of_wires: usize, witness: &mut WitnessMap) ->
     let reader = OpenOptions::new().read(true).open(r1cs)?;
     // let reader = BufReader::new(reader);
     let r1cs_file: R1CSFile<ark_bn254::Bn254> = R1CSFile::new(reader)?;
-    let circuit = circom_circuit::acir_circuit_from_r1cs_file(r1cs_file, tmp_wit_index, witness);
+    let circuit = circom_circuit::acir_circuit_from_r1cs_file(r1cs_file, &mut tmp_wit_index, witness);
     println!("r1cs: {:?}", r1cs);
     Ok(circuit)
 }

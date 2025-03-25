@@ -28,4 +28,4 @@ template Test(n) {
     }
 }
 
-component main = Test(4);
+component main = Test(1000);

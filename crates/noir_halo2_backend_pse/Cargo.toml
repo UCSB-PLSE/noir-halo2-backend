@@ -43,6 +43,9 @@ ark-ec = "0.4.0"
 ark-serialize = "0.4"
 ark-std = "0.4.0"
 byteorder = "1.5.0"
+regex = "1.10.6"
+rand_chacha = "0.3.1"
+pse_halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", package = "halo2_proofs", tag = "v2023_04_20" }
 
 [dev-dependencies]
 criterion = "0.5.1"
