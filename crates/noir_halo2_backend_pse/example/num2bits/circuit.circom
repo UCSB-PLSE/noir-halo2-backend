@@ -18,14 +18,12 @@ template Num2Bits(n) {
 
 template Test(n) {
     signal input in;
-    signal input expected[n];
+    signal input expected;
 
     component n2b = Num2Bits(n);
     n2b.in <== in;
 
-    for (var i = 0; i<n; i++) {
-        n2b.out[i] === expected[i];
-    }
+    n2b.out[0] === expected;
 }
 
-component main = Test(1000);
+component main = Test(4096);

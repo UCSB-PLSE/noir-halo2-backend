@@ -70,4 +70,4 @@ template BigAddNoCarry(n, k) {
 }
 
 
-component main = BigAddNoCarry(32, 32);
+component main = BigAddNoCarry(32, 253);

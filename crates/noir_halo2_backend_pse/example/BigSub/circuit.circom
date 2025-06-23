@@ -88,4 +88,4 @@ template BigSub(n, k) {
     underflow <== unit[k - 2].borrow;
 }
 
-component main = BigSub(32, 32);
+component main = BigSub(32, 253);

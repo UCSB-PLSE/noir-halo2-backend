@@ -41,4 +41,4 @@ template BigIsEqual(k){
     out <== isEqual[k].out;
 }
 
-component main = BigIsEqual(100);
+component main = BigIsEqual(1000);

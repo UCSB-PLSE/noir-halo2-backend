@@ -19,15 +19,15 @@ NULL,
 NULL };
 uint get_main_input_signal_start() {return 2;}
 
-uint get_main_input_signal_no() {return 200;}
+uint get_main_input_signal_no() {return 2000;}
 
-uint get_total_signal_no() {return 808;}
+uint get_total_signal_no() {return 8008;}
 
-uint get_number_of_components() {return 203;}
+uint get_number_of_components() {return 2003;}
 
 uint get_size_of_input_hashmap() {return 256;}
 
-uint get_size_of_witness() {return 505;}
+uint get_size_of_witness() {return 5005;}
 
 uint get_size_of_constants() {return 3;}
 
@@ -194,10 +194,10 @@ void BigIsEqual_2_create(uint soffset,uint coffset,Circom_CalcWit* ctx,std::stri
 ctx->componentMemory[coffset].templateId = 2;
 ctx->componentMemory[coffset].templateName = "BigIsEqual";
 ctx->componentMemory[coffset].signalStart = soffset;
-ctx->componentMemory[coffset].inputCounter = 200;
+ctx->componentMemory[coffset].inputCounter = 2000;
 ctx->componentMemory[coffset].componentName = componentName;
 ctx->componentMemory[coffset].idFather = componentFather;
-ctx->componentMemory[coffset].subcomponents = new uint[101]{0};
+ctx->componentMemory[coffset].subcomponents = new uint[1001]{0};
 }
 
 void BigIsEqual_2_run(uint ctx_index,Circom_CalcWit* ctx){
@@ -225,9 +225,9 @@ Fr_copy(aux_dest,&circuitConstants[2]);
 {
 uint aux_create = 0;
 int aux_cmp_num = 0+ctx_index+1;
-uint csoffset = mySignalStart+201;
-uint aux_dimensions[1] = {101};
-for (uint i = 0; i < 101; i++) {
+uint csoffset = mySignalStart+2001;
+uint aux_dimensions[1] = {1001};
+for (uint i = 0; i < 1001; i++) {
 std::string new_cmp_name = "isEqual"+ctx->generate_position_array(aux_dimensions, 1, i);
 IsEqual_1_create(csoffset,aux_cmp_num,ctx,new_cmp_name,myId);
 mySubcomponents[aux_create+ i] = aux_cmp_num;
@@ -269,7 +269,7 @@ uint cmp_index_ref = ((1 * Fr_toInt(&lvar[2])) + 0);
 PFrElement aux_dest = &ctx->signalValues[ctx->componentMemory[mySubcomponents[cmp_index_ref]].signalStart + 2];
 // load src
 // end load src
-Fr_copy(aux_dest,&signalValues[mySignalStart + ((100 + (1 * Fr_toInt(&lvar[2]))) + 1)]);
+Fr_copy(aux_dest,&signalValues[mySignalStart + ((1000 + (1 * Fr_toInt(&lvar[2]))) + 1)]);
 }
 // run sub component if needed
 if(!(ctx->componentMemory[mySubcomponents[cmp_index_ref]].inputCounter -= 1)){
@@ -296,7 +296,7 @@ Fr_copy(aux_dest,&expaux[0]);
 Fr_lt(&expaux[0],&lvar[2],&circuitConstants[2]); // line circom 31
 }
 {
-uint cmp_index_ref = 100;
+uint cmp_index_ref = 1000;
 {
 PFrElement aux_dest = &ctx->signalValues[ctx->componentMemory[mySubcomponents[cmp_index_ref]].signalStart + 1];
 // load src
@@ -310,7 +310,7 @@ IsEqual_1_run(mySubcomponents[cmp_index_ref],ctx);
 }
 }
 {
-uint cmp_index_ref = 100;
+uint cmp_index_ref = 1000;
 {
 PFrElement aux_dest = &ctx->signalValues[ctx->componentMemory[mySubcomponents[cmp_index_ref]].signalStart + 2];
 // load src
@@ -326,12 +326,12 @@ IsEqual_1_run(mySubcomponents[cmp_index_ref],ctx);
 {
 PFrElement aux_dest = &signalValues[mySignalStart + 0];
 // load src
-cmp_index_ref_load = 100;
-cmp_index_ref_load = 100;
+cmp_index_ref_load = 1000;
+cmp_index_ref_load = 1000;
 // end load src
-Fr_copy(aux_dest,&ctx->signalValues[ctx->componentMemory[mySubcomponents[100]].signalStart + 0]);
+Fr_copy(aux_dest,&ctx->signalValues[ctx->componentMemory[mySubcomponents[1000]].signalStart + 0]);
 }
-for (uint i = 0; i < 101; i++){
+for (uint i = 0; i < 1001; i++){
 uint index_subc = ctx->componentMemory[ctx_index].subcomponents[i];
 if (index_subc != 0)release_memory_component(ctx,index_subc);
 }

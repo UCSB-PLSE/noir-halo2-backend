@@ -12,4 +12,4 @@ template MultiMux1(n) {
     }
 }
 
-component main  = MultiMux1(1000);
+component main  = MultiMux1(4096);

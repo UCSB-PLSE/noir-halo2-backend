@@ -9,17 +9,17 @@ Circom_TemplateFunction _functionTable[1] = {
 MultiMux1_0_run };
 Circom_TemplateFunction _functionTableParallel[1] = { 
 NULL };
-uint get_main_input_signal_start() {return 1001;}
+uint get_main_input_signal_start() {return 4097;}
 
-uint get_main_input_signal_no() {return 2001;}
+uint get_main_input_signal_no() {return 8193;}
 
-uint get_total_signal_no() {return 3002;}
+uint get_total_signal_no() {return 12290;}
 
 uint get_number_of_components() {return 1;}
 
 uint get_size_of_input_hashmap() {return 256;}
 
-uint get_size_of_witness() {return 3002;}
+uint get_size_of_witness() {return 12290;}
 
 uint get_size_of_constants() {return 3;}
 
@@ -61,7 +61,7 @@ void MultiMux1_0_create(uint soffset,uint coffset,Circom_CalcWit* ctx,std::strin
 ctx->componentMemory[coffset].templateId = 0;
 ctx->componentMemory[coffset].templateName = "MultiMux1";
 ctx->componentMemory[coffset].signalStart = soffset;
-ctx->componentMemory[coffset].inputCounter = 2001;
+ctx->componentMemory[coffset].inputCounter = 8193;
 ctx->componentMemory[coffset].componentName = componentName;
 ctx->componentMemory[coffset].idFather = componentFather;
 ctx->componentMemory[coffset].subcomponents = new uint[0];
@@ -100,9 +100,9 @@ while(Fr_isTrue(&expaux[0])){
 {
 PFrElement aux_dest = &signalValues[mySignalStart + ((1 * Fr_toInt(&lvar[1])) + 0)];
 // load src
-Fr_sub(&expaux[2],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 1) + 1000)],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 0) + 1000)]); // line circom 10
-Fr_mul(&expaux[1],&expaux[2],&signalValues[mySignalStart + 3000]); // line circom 10
-Fr_add(&expaux[0],&expaux[1],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 0) + 1000)]); // line circom 10
+Fr_sub(&expaux[2],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 1) + 4096)],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 0) + 4096)]); // line circom 10
+Fr_mul(&expaux[1],&expaux[2],&signalValues[mySignalStart + 12288]); // line circom 10
+Fr_add(&expaux[0],&expaux[1],&signalValues[mySignalStart + (((2 * Fr_toInt(&lvar[1])) + 0) + 4096)]); // line circom 10
 // end load src
 Fr_copy(aux_dest,&expaux[0]);
 }

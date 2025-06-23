@@ -36,4 +36,4 @@ template MultiAND(n) {
     }
 }
 
-component main  = MultiAND(1000);
+component main  = MultiAND(4096);

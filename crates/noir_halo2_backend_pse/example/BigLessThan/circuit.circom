@@ -116,4 +116,4 @@ template BigLessThan(n, k){
      out <== ors[0].out;
 }
 
-component main = BigLessThan(32, 32);
+component main = BigLessThan(32, 253);

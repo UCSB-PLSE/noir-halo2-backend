@@ -70,15 +70,16 @@ pub fn halo2_verify(
 
 #[derive(Clone)]
 pub struct PlonkConfig {
-    pub(crate) range_chip: RangeChip<Fr>,
+    // pub(crate) range_chip: RangeChip<Fr>,
     pub(crate) gate_chip: GateChip<Fr>,
 }
 
 impl PlonkConfig {
     pub fn configure(_meta: &mut ConstraintSystem<Fr>) -> Self {
-        let range_chip = RangeChip::default(17);
+        // let range_chip = RangeChip::default(17);
         let gate_chip = GateChip::default();
 
-        PlonkConfig { range_chip, gate_chip }
+        PlonkConfig { gate_chip }
+        // PlonkConfig { range_chip, gate_chip }
     }
 }

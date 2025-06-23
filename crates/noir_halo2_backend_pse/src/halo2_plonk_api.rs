@@ -19,7 +19,7 @@ use pse_halo2wrong::halo2::{
     },
     transcript::{TranscriptReadBuffer, TranscriptWriterBuffer},
 };
-use pse_maingate::{MainGate, MainGateConfig, RangeChip, RangeConfig};
+use pse_maingate::{MainGate, MainGateConfig};
 
 use pse_snark_verifier::system::halo2::transcript::evm::EvmTranscript;
 use rand::rngs::OsRng;
@@ -80,7 +80,7 @@ pub fn halo2_verify(
 #[derive(Clone, Debug)]
 pub struct PlonkConfig {
     pub(crate) main_gate_config: MainGateConfig,
-    pub(crate) range_config: RangeConfig,
+    // pub(crate) range_config: RangeConfig,
 }
 
 impl PlonkConfig {
@@ -91,14 +91,15 @@ impl PlonkConfig {
         let overflow_bit_lens: Vec<usize> = vec![1, 2, 3, 4, 5, 6, 7];
         let composition_bit_lens = vec![8];
 
-        let range_config = RangeChip::<Fr>::configure(
-            meta,
-            &main_gate_config,
-            composition_bit_lens,
-            overflow_bit_lens,
-        );
+        // let range_config = RangeChip::<Fr>::configure(
+        //     meta,
+        //     &main_gate_config,
+        //     composition_bit_lens,
+        //     overflow_bit_lens,
+        // );
 
-        PlonkConfig { main_gate_config, range_config }
+        PlonkConfig { main_gate_config}
+        //  range_config }
     }
 
     pub(crate) fn configure_with_params(
@@ -110,14 +111,15 @@ impl PlonkConfig {
         let overflow_bit_lens: Vec<usize> = vec![1, 2, 3, 4, 5, 6, 7];
         let composition_bit_lens = vec![8];
 
-        let range_config = RangeChip::<Fr>::configure(
-            meta,
-            &main_gate_config,
-            composition_bit_lens,
-            overflow_bit_lens,
-        );
+        // let range_config = RangeChip::<Fr>::configure(
+        //     meta,
+        //     &main_gate_config,
+        //     composition_bit_lens,
+        //     overflow_bit_lens,
+        // );
 
-        PlonkConfig { main_gate_config, range_config }
+        PlonkConfig { main_gate_config}
+        // , range_config }
     }
 }
 

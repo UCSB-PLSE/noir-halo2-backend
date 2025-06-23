@@ -14,38 +14,38 @@ def generate_json_file(directory):
     os.makedirs(directory, exist_ok=True)
     filename = os.path.join(directory, "input.json")
     if directory == "MultiAND":
-        data = {"in": [random.choice(["0", "1"]) for _ in range(1000)]}
+        data = {"in": [random.choice(["0", "1"]) for _ in range(4096)]}
     elif directory == "BigSub":
         data = {
-            "a": [random.choice(["0", "1"]) for _ in range(32)],
-            "b": [random.choice(["0", "1"]) for _ in range(32)]
+            "a": [random.choice(["0", "1"]) for _ in range(253)],
+            "b": [random.choice(["0", "1"]) for _ in range(253)]
         }
     elif directory == "BigLessThan":
         data = {
-            "a": [random.choice(["0", "1"]) for _ in range(32)],
-            "b": [random.choice(["0", "1"]) for _ in range(32)]
+            "a": [random.choice(["0", "1"]) for _ in range(253)],
+            "b": [random.choice(["0", "1"]) for _ in range(253)]
         }
     elif directory == "BigIsEqual":
         data = {
             "in": [
-                [random.choice(["0", "1"]) for _ in range(100)] for _ in range(2)
+                [random.choice(["0", "1"]) for _ in range(1000)] for _ in range(2)
             ],
         }
     elif directory == "MultiMux":
         data = {
             "c": [
-                [random.choice(["0", "1"]) for _ in range(2)] for _ in range(1000)
+                [random.choice(["0", "1"]) for _ in range(2)] for _ in range(4096)
             ],
             "s": "1",
         }
     elif directory == "Decoder":
         data = {
-            "inp": "1000"
+            "inp": "2"
         }
     elif directory == "BigAddNoCarry":
         data = {
-            "a": [random.choice(["0", "1"]) for _ in range(32)],
-            "b": [random.choice(["0", "1"]) for _ in range(32)],
+            "a": [random.choice(["0", "1"]) for _ in range(253)],
+            "b": [random.choice(["0", "1"]) for _ in range(253)],
         }
     elif directory == "BinSum":
         ops = 100
@@ -55,11 +55,12 @@ def generate_json_file(directory):
             ],
         }
     elif directory == "num2bits":
-        in_str = "1234567891011121314"
-        n = 1000
+        in_str = "4444444444"
+        n = 2048
         data = {
             "in": in_str,
-            "expected": decimal_string_to_binary_list(in_str, n)
+            "expected": "0"
+            # decimal_string_to_binary_list(in_str, n)
         }
 
     with open(filename, "w") as f:

@@ -51,7 +51,7 @@ pub(crate) fn acir_circuit_from_r1cs_file(r1cs_file: R1CSFile<ark_bn254::Bn254>,
 
             let a_mul_b = (&fst_a_expr * &fst_b_expr).expect("`a` and `b` are both linear");
             // println!("c: {:?}", &c_exprs);
-            println!("a*b - c: {:?}", &a_mul_b - &fst_c_expr);
+            // println!("a*b - c: {:?}", &a_mul_b - &fst_c_expr);
 
             let mut opcodes = vec![Opcode::Arithmetic(&a_mul_b - &fst_c_expr)];
             for expr in a_exprs.into_iter().skip(1) {

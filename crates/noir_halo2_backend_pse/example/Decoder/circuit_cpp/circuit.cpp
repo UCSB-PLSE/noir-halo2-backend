@@ -9,17 +9,17 @@ Circom_TemplateFunction _functionTable[1] = {
 Decoder_0_run };
 Circom_TemplateFunction _functionTableParallel[1] = { 
 NULL };
-uint get_main_input_signal_start() {return 1002;}
+uint get_main_input_signal_start() {return 130;}
 
 uint get_main_input_signal_no() {return 1;}
 
-uint get_total_signal_no() {return 1003;}
+uint get_total_signal_no() {return 131;}
 
 uint get_number_of_components() {return 1;}
 
 uint get_size_of_input_hashmap() {return 256;}
 
-uint get_size_of_witness() {return 1003;}
+uint get_size_of_witness() {return 131;}
 
 uint get_size_of_constants() {return 3;}
 
@@ -104,7 +104,7 @@ Fr_copy(aux_dest,&circuitConstants[1]);
 Fr_lt(&expaux[0],&lvar[2],&circuitConstants[0]); // line circom 9
 while(Fr_isTrue(&expaux[0])){
 {{
-Fr_eq(&expaux[0],&signalValues[mySignalStart + 1001],&lvar[2]); // line circom 10
+Fr_eq(&expaux[0],&signalValues[mySignalStart + 129],&lvar[2]); // line circom 10
 }}
 if(Fr_isTrue(&expaux[0])){
 {
@@ -122,7 +122,7 @@ Fr_copy(aux_dest,&circuitConstants[1]);
 }
 }
 {
-Fr_sub(&expaux[2],&signalValues[mySignalStart + 1001],&lvar[2]); // line circom 11
+Fr_sub(&expaux[2],&signalValues[mySignalStart + 129],&lvar[2]); // line circom 11
 Fr_mul(&expaux[1],&signalValues[mySignalStart + ((1 * Fr_toInt(&lvar[2])) + 0)],&expaux[2]); // line circom 11
 {{
 Fr_eq(&expaux[0],&expaux[1],&circuitConstants[1]); // line circom 11
@@ -147,14 +147,14 @@ Fr_copy(aux_dest,&expaux[0]);
 Fr_lt(&expaux[0],&lvar[2],&circuitConstants[0]); // line circom 9
 }
 {
-PFrElement aux_dest = &signalValues[mySignalStart + 1000];
+PFrElement aux_dest = &signalValues[mySignalStart + 128];
 // load src
 // end load src
 Fr_copy(aux_dest,&lvar[1]);
 }
 {
-Fr_sub(&expaux[2],&signalValues[mySignalStart + 1000],&circuitConstants[2]); // line circom 16
-Fr_mul(&expaux[1],&signalValues[mySignalStart + 1000],&expaux[2]); // line circom 16
+Fr_sub(&expaux[2],&signalValues[mySignalStart + 128],&circuitConstants[2]); // line circom 16
+Fr_mul(&expaux[1],&signalValues[mySignalStart + 128],&expaux[2]); // line circom 16
 {{
 Fr_eq(&expaux[0],&expaux[1],&circuitConstants[1]); // line circom 16
 }}
