@@ -2,7 +2,7 @@ mod fs {
     use std::{
         env::var,
         fs::{self, File},
-        io::{BufReader, BufWriter},
+        io::{BufReader, BufWriter}
     };
     
     use pse_halo2_proofs::{
@@ -212,7 +212,9 @@ mod test {
     #[test]
     fn circom() {
         use std::env;
-        
+        use std::process::{Command, Output};
+        use std::process::Stdio;
+
         let args: Vec<String> = env::args().collect();
         let benchmark_default = String::from("simple");
 
@@ -236,7 +238,28 @@ mod test {
         let mut num_of_columns :Vec<usize>= Vec::new();
         // let mut is_installed = false;
 
-        for benchmark in &test_dirs_names {
+        for benchmark in &test_dirs_names {            
+            let path =
+                std::fs::canonicalize(format!("./example/{benchmark}/circuit.circom"))
+                    .unwrap();
+            let path = path.to_str().unwrap();
+
+            let status = Command::new("circom")
+                .arg(path)
+                .arg("--r1cs")
+                .arg("--wasm")
+                .arg("--sym")
+                .arg("--c")
+                .stdout(Stdio::null())
+                .status()
+                .expect("failed to execute circom");
+
+            if status.success() {
+                println!("circom compiled successfully");
+            } else {
+                eprintln!("circom failed with status: {:?}", status);
+            }
+            
             let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
             let r1cs = r1cs.as_str();
             let wtns = format!("example/{}/circuit_js/witness.wtns", benchmark).clone();
@@ -249,12 +272,6 @@ mod test {
             let translator =
                 NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
             let dimension = DimensionMeasurement::measure(&translator).unwrap();
-
-            // let instance = vec![vec![]];
-
-            // run mock prover expecting success
-            // let prover = MockProver::run(dimension.k(), &translator, instance).unwrap();
-            // assert_eq!(prover.verify(), Ok(()));
 
             let k = dimension.k();
             let params = fs::gen_srs(k);
