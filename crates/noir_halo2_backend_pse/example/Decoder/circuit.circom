@@ -16,4 +16,4 @@ template Decoder(w) {
     success * (success -1) === 0;
 }
 
-component main  = Decoder(1000);
+component main  = Decoder(4096);

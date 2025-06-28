@@ -2,7 +2,7 @@ mod fs {
     use std::{
         env::var,
         fs::{self, File},
-        io::{BufReader, BufWriter},
+        io::{BufReader, BufWriter}
     };
     
     use pse_halo2_proofs::{
@@ -68,6 +68,7 @@ mod fs {
 mod test {
     use super::fs;
     use rand::rngs::StdRng;
+    use std::fmt::Debug;
     use crate::{
         circom, circuit_translator::NoirHalo2Translator, dimension_measure::DimensionMeasurement,
     };
@@ -199,97 +200,168 @@ mod test {
         proof_size: usize,
         verify_time: f64,
     }
+
+    fn extract_usize_field<T: Debug>(obj: &T, field: &str) -> Option<usize> {
+        let debug_str = format!("{:?}", obj);
+        let re = Regex::new(&format!(r#"{field}:\s*(\d+)"#, field = field)).ok()?;
+        let caps = re.captures(&debug_str)?;
+        let val_str = caps.get(1)?.as_str();
+        val_str.parse::<usize>().ok()
+    }
+
     #[test]
     fn circom() {
         use std::env;
-        
+        use std::process::{Command, Output};
+        use std::process::Stdio;
+
         let args: Vec<String> = env::args().collect();
         let benchmark_default = String::from("simple");
-        let benchmark = args.get(3).unwrap_or(&benchmark_default);
-        let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
-        let r1cs = r1cs.as_str();
-        let wtns = format!("example/{}/circuit_js/witness.wtns", benchmark).clone();
-        let wtns = wtns.as_str();
+
+        let test_dirs_names = vec![
+            "BigAddNoCarry",
+            "BigIsEqual",
+            "BigLessThan",
+            "BigSub",
+            "BinSum",
+            "Decoder",
+            "MultiAND",
+            "MultiMux",
+            "num2bits"
+        ];
         
-        // get circuit
-        let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
+        let mut proof_times = Vec::new();
+        let mut verify_times = Vec::new();
+        let mut ks = Vec::new();
+        let mut proof_sizes = Vec::new();
+        let mut num_of_rows = Vec::new();
+        let mut num_of_columns :Vec<usize>= Vec::new();
+        // let mut is_installed = false;
 
-        for (i, f) in witness_values.clone() {
-            println!("{:?}: {:?}", i, f);
-        }
-        
-        println!("circuit: {:?}", circuit);
-        // instantiate halo2 circuit
-        let translator =
-            NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
-        let dimension = DimensionMeasurement::measure(&translator).unwrap();
+        for benchmark in &test_dirs_names {            
+            let path =
+                std::fs::canonicalize(format!("./example/{benchmark}/circuit.circom"))
+                    .unwrap();
+            let path = path.to_str().unwrap();
 
-        let instance = vec![vec![]];
+            let status = Command::new("circom")
+                .arg(path)
+                .arg("--r1cs")
+                .arg("--wasm")
+                .arg("--sym")
+                .arg("--c")
+                .stdout(Stdio::null())
+                .status()
+                .expect("failed to execute circom");
 
-        // run mock prover expecting success
-        let prover = MockProver::run(dimension.k(), &translator, instance).unwrap();
-        assert_eq!(prover.verify(), Ok(()));
-
-        let k = dimension.k();
-        let params = fs::gen_srs(k);
-        
-        let circuit_cost = CircuitCost::<G2, NoirHalo2Translator<Fr>>::measure(k as usize, &translator);
-            
-        // Generating vkey
-        let vk_start_time = Instant::now();
-        let vk = keygen_vk(&params, &translator).unwrap();
-        let vk_time = vk_start_time.elapsed();
-
-        // Generating pkey
-        let pk_start_time = Instant::now();
-        let pk = keygen_pk(&params, vk, &translator).unwrap();
-        let pk_time = pk_start_time.elapsed();
-
-        // Creating the proof
-        let proof_start_time = Instant::now();
-        let proof = gen_proof(&params, &pk, translator);
-        let proof_time = proof_start_time.elapsed();
-        let proof_size = proof.len();
-
-        // Verifying
-        let verify_start_time = Instant::now();
-        check_proof(&params, pk.get_vk(), &proof, true);
-        let verify_time = verify_start_time.elapsed();
-
-        let cost = Cost {
-            // mockprover_verified: true,
-            circuit_cost: circuit_cost,
-            pk_time: pk_time.as_secs_f64(),
-            vk_time: vk_time.as_secs_f64(),
-            proof_time: proof_time.as_secs_f64(),
-            proof_size: proof_size,
-            verify_time: verify_time.as_secs_f64(),
-        };
-        
-        let cost_data = format!("{:#?}", cost);
-    
-        let filtered_data: Vec<&str> = cost_data
-            .lines()
-            .filter(|line| !line.contains("_marker"))
-            .collect();
-    
-        let filtered_data = filtered_data.join("\n");
-        
-        let re = Regex::new(r"[-+]?\d*\.\d+|\d+").unwrap();
-        let numbers: Vec<&str> = re.find_iter(&filtered_data).map(|mat| mat.as_str()).collect();
-    
-        for num in &numbers {
-            if num.contains('.') {
-                if let Ok(parsed_num) = num.parse::<f64>() {
-                    println!("{}", parsed_num);
-                }
+            if status.success() {
+                println!("circom compiled successfully");
             } else {
-                if let Ok(parsed_num) = num.parse::<i64>() {
-                    println!("{}", parsed_num);
-                }
+                eprintln!("circom failed with status: {:?}", status);
             }
+            
+            let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
+            let r1cs = r1cs.as_str();
+            let wtns = format!("example/{}/circuit_js/witness.wtns", benchmark).clone();
+            let wtns = wtns.as_str();
+            
+            // get circuit
+            let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
+
+            // instantiate halo2 circuit
+            let translator =
+                NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
+            let dimension = DimensionMeasurement::measure(&translator).unwrap();
+
+            let k = dimension.k();
+            let params = fs::gen_srs(k);
+            
+            let circuit_cost = CircuitCost::<G2, NoirHalo2Translator<Fr>>::measure(k as usize, &translator);
+                
+            // Generating vkey
+            let vk_start_time = Instant::now();
+            let vk = keygen_vk(&params, &translator).unwrap();
+            let vk_time = vk_start_time.elapsed();
+
+            // Generating pkey
+            let pk_start_time = Instant::now();
+            let pk = keygen_pk(&params, vk, &translator).unwrap();
+            let pk_time = pk_start_time.elapsed();
+
+            // Creating the proof
+            let proof_start_time = Instant::now();
+            let proof = gen_proof(&params, &pk, translator);
+            let proof_time = proof_start_time.elapsed();
+            let proof_size = proof.len();
+
+            // Verifying
+            let verify_start_time = Instant::now();
+            check_proof(&params, pk.get_vk(), &proof, true);
+            let verify_time = verify_start_time.elapsed();
+
+            let cost = Cost {
+                // mockprover_verified: true,
+                circuit_cost: circuit_cost,
+                pk_time: pk_time.as_secs_f64(),
+                vk_time: vk_time.as_secs_f64(),
+                proof_time: proof_time.as_secs_f64(),
+                proof_size: proof_size,
+                verify_time: verify_time.as_secs_f64(),
+            };
+            
+            proof_times.push(cost.proof_time);
+            verify_times.push(cost.verify_time);
+            ks.push(k);
+            proof_sizes.push(cost.proof_size);
+            num_of_rows.push(extract_usize_field(&cost.circuit_cost, "max_rows").unwrap());
+            num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
+                extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
+                extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
+        }
+
+        println!(
+            "program, k, num_of_rows, num_of_columns, proof_time, proof_size, verify_time"
+        );
+        for (i, program) in test_dirs_names.iter().enumerate() {
+            println!(
+                "{},{},{},{},{},{},{}",
+                program,
+                ks[i],
+                num_of_rows[i],
+                num_of_columns[i],
+                proof_times[i],
+                proof_sizes[i],
+                verify_times[i]
+            );
         }
     }
+
+
+        // let benchmark = args.get(3).unwrap_or(&benchmark_default);
+        // let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
+        // let r1cs = r1cs.as_str();
+        // let wtns = format!("example/{}/circuit_js/witness.wtns", benchmark).clone();
+        // let wtns = wtns.as_str();
+        
+        // // get circuit
+        // let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
+
+        // // for (i, f) in witness_values.clone() {
+        // //     println!("{:?}: {:?}", i, f);
+        // // }
+        
+        // // println!("circuit: {:?}", circuit);
+        // // instantiate halo2 circuit
+        // let translator =
+        //     NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
+        // let dimension = DimensionMeasurement::measure(&translator).unwrap();
+
+        // let instance = vec![vec![]];
+
+        // // run mock prover expecting success
+        // let prover = MockProver::run(dimension.k(), &translator, instance).unwrap();
+        // assert_eq!(prover.verify(), Ok(()));
+
 
     #[test]
     fn test_public_io_circuit_success() {

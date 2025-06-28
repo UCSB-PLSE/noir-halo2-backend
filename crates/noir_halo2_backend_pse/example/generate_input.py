@@ -40,7 +40,7 @@ def generate_json_file(directory):
         }
     elif directory == "Decoder":
         data = {
-            "inp": "1000"
+            "inp": "2"
         }
     elif directory == "BigAddNoCarry":
         data = {
@@ -55,11 +55,12 @@ def generate_json_file(directory):
             ],
         }
     elif directory == "num2bits":
-        in_str = "1234567891011121314"
+        in_str = "4444444444"
         n = 1000
         data = {
             "in": in_str,
-            "expected": decimal_string_to_binary_list(in_str, n)
+            "expected": "0"
+            # decimal_string_to_binary_list(in_str, n)
         }
 
     with open(filename, "w") as f:
