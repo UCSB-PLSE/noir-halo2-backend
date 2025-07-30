@@ -231,7 +231,7 @@ mod test {
         let mut ks = Vec::new();
         let mut proof_sizes = Vec::new();
         let mut num_of_rows = Vec::new();
-        let mut num_of_columns :Vec<usize>= Vec::new();
+        // let mut num_of_columns :Vec<usize>= Vec::new();
         
         let test_dirs_names = vec![
             "fib",
@@ -347,10 +347,9 @@ mod test {
             ks.push(k);
             proof_sizes.push(cost.proof_size);
             num_of_rows.push(2_i32.pow(k));
-            num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
-                extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
-                extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
-    
+            // num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
+            //     extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
+            //     extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
         }
 
         println!(
@@ -401,7 +400,7 @@ mod test {
         let mut ks = Vec::new();
         let mut proof_sizes = Vec::new();
         let mut num_of_rows = Vec::new();
-        let mut num_of_columns :Vec<usize>= Vec::new();
+        // let mut num_of_columns :Vec<usize>= Vec::new();
         // let mut is_installed = false;
 
         for benchmark in &test_dirs_names {            
@@ -429,11 +428,37 @@ mod test {
                 eprintln!("circom failed with status: {:?}", status);
             }
             
+            // Canonicalize paths for node command
+            let generate_witness = std::fs::canonicalize(format!("./example/{benchmark}/circuit_js/generate_witness.js"))
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+
+            let wasm_path = std::fs::canonicalize(format!("./example/{benchmark}/circuit_js/circuit.wasm"))
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+
+            let input_json = std::fs::canonicalize(format!("./example/{benchmark}/input.json"))
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+
+            let witness_out = std::fs::canonicalize(format!("./example/{benchmark}/circuit_js"))
+                .unwrap()
+                .join("witness.wtns")
+                .to_str()
+                .unwrap()
+                .to_string();
+
             let status = Command::new("node")
-                .arg(format!("./example/{benchmark}/circuit_js/generate_witness.js"))
-                .arg(format!("./example/{benchmark}/circuit_js//circuit.wasm"))
-                .arg(format!("./example/{benchmark}/input.json"))
-                .arg(format!("./example/{benchmark}/circuit_js/witness.wtns"))
+                .arg(generate_witness)
+                .arg(wasm_path)
+                .arg(input_json)
+                .arg(witness_out)
                 .stdout(Stdio::null())
                 .status()
                 .expect("failed to execute generate_witness.js");
@@ -441,9 +466,8 @@ mod test {
             if status.success() {
                 println!("witness generated successfully");
             } else {
-            eprintln!("witness generation failed with status: {:?}", status);
-            }
-                
+                eprintln!("witness generation failed with status: {:?}", status);
+            }    
                 
             let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
             let r1cs = r1cs.as_str();
@@ -501,9 +525,9 @@ mod test {
             ks.push(k);
             proof_sizes.push(cost.proof_size);
             num_of_rows.push(2_i32.pow(k));
-            num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
-                extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
-                extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
+            // num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
+            //     extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
+            //     extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
         }
 
         println!(
