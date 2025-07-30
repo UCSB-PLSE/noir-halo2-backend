@@ -24,3 +24,10 @@ result
 **/contract
 *.sol
 **/target
+
+crates/noir_halo2_backend_pse/example/*/circuit.r1cs
+crates/noir_halo2_backend_pse/example/*/circuit.sym
+crates/noir_halo2_backend_pse/example/*/circuit_js/
+crates/noir_halo2_backend_pse/example/*/circuit_cpp/
+
+

@@ -357,11 +357,11 @@ mod test {
         );
         for (i, program) in test_dirs_names.iter().enumerate() {
             println!(
-                "{},{},{},{},{},{},{}",
+                "{},{},{},{},{},{}",
                 program,
                 ks[i],
                 num_of_rows[i],
-                num_of_columns[i],
+                // num_of_columns[i],
                 proof_times[i],
                 proof_sizes[i],
                 verify_times[i]
@@ -535,11 +535,11 @@ mod test {
         );
         for (i, program) in test_dirs_names.iter().enumerate() {
             println!(
-                "{},{},{},{},{},{},{}",
+                "{},{},{},{},{},{}",
                 program,
                 ks[i],
                 num_of_rows[i],
-                num_of_columns[i],
+                // num_of_columns[i],
                 proof_times[i],
                 proof_sizes[i],
                 verify_times[i]

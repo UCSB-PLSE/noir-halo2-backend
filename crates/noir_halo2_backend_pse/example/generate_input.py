@@ -22,8 +22,8 @@ def generate_json_file(directory):
         }
     elif directory == "BigLessThan":
         data = {
-            "a": [random.choice(["0", "1"]) for _ in range(253)],
-            "b": [random.choice(["0", "1"]) for _ in range(253)]
+            "a": [random.choice(["0", "1"]) for _ in range(32)],
+            "b": [random.choice(["0", "1"]) for _ in range(32)]
         }
     elif directory == "BigIsEqual":
         data = {
@@ -46,6 +46,12 @@ def generate_json_file(directory):
         data = {
             "a": [random.choice(["0", "1"]) for _ in range(253)],
             "b": [random.choice(["0", "1"]) for _ in range(253)],
+        }
+    elif directory == "BigSubModP":
+        data = {
+            "a": [random.choice(["0", "1"]) for _ in range(251)],
+            "b": [random.choice(["0", "1"]) for _ in range(251)],
+            "p": ["1" for _ in range(251)]
         }
     elif directory == "BinSum":
         ops = 100
