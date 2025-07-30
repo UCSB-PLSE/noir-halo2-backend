@@ -67,12 +67,16 @@ mod fs {
 #[cfg(test)]
 mod test {
     use super::fs;
-    use rand::rngs::StdRng;
-    use std::fmt::Debug;
+    use ark_bn254::Bn254;
+    use ark_ec::{bls12::Bls12, pairing::Pairing};
+    use circ::{ir::term::{serde_mods::vec, text::parse_value_map}, target::{aby::trans, r1cs::{opt::reduce_linearities, trans::to_r1cs}}};
+    use rand::{distributions::WeightedError, rngs::StdRng};
+    use core::num;
+    use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault};
     use crate::{
-        circom, circuit_translator::NoirHalo2Translator, dimension_measure::DimensionMeasurement,
+        circom, circuit_translator::NoirHalo2Translator, dimension_measure::DimensionMeasurement, r1cs_reader::{ConstraintVec, R1CS},
     };
-    use acvm::{acir::native_types::Witness, FieldElement};
+    use acvm::{acir::{circuit, native_types::{Witness, WitnessMap}}, FieldElement};
     use noir_halo2_backend_common::test_helpers::build_artifacts;
     use pse_halo2wrong::{
         curves::bn256::Fr,
@@ -170,6 +174,7 @@ mod test {
         >(verifier_params, vk, strategy, &[instances], &mut transcript);
         // Just FYI, because strategy is `SingleStrategy`, the output `res` is `Result<(), Error>`, so there is no need to call `res.finalize()`.
 
+        println!("Verification result: {:?}", res);
         if expect_satisfied {
             res.unwrap();
         } else {
@@ -209,6 +214,162 @@ mod test {
         val_str.parse::<usize>().ok()
     }
 
+    use circ::ir::{opt::{opt, Opt}, term::{Computations, Value, Value::Field}};
+    use circ::front::{Mode, FrontEnd};
+    use circ::cfg::{CircCfg, cfg};
+    use circ_opt::{CircOpt, BuiltinField, FieldOpt};
+    use std::path::PathBuf;
+    use circ_fields::{FieldT};
+    use circ::front::zsharp::{self, ZSharpFE};
+    
+    #[test]
+    fn circ() {
+        use crate::circ_translator::{transform_circ_r1cs_to_r1cs, get_witness, get_circuit};
+        
+        let mut proof_times = Vec::new();
+        let mut verify_times = Vec::new();
+        let mut ks = Vec::new();
+        let mut proof_sizes = Vec::new();
+        let mut num_of_rows = Vec::new();
+        let mut num_of_columns :Vec<usize>= Vec::new();
+        
+        let test_dirs_names = vec![
+            "fib",
+            "check_for_collision",
+            "check_ship_range",
+            "has_ship",
+            "check_hit",
+            "dotproduct",
+            "check_cards",
+            "sort"
+        ];
+        
+        let opt_circ = CircOpt::default();
+        circ::cfg::set(&opt_circ);
+        let mode = Mode::Proof; 
+            
+        for benchmark in &test_dirs_names {
+            let mut path = PathBuf::new();
+            let mut inputs_path = PathBuf::new();
+            // let mut claimed_ret_path = PathBuf::new();
+            
+            path.push(format!("circ_example/{}/src.zok", benchmark));
+            inputs_path.push(format!("circ_example/{}/wit.pin", benchmark));
+            let inputs = zsharp::Inputs {
+                file: path,
+                mode,
+            };
+            let mut inputs_map = parse_value_map(&std::fs::read(inputs_path).unwrap());
+            
+            let cs = ZSharpFE::gen(inputs);
+            let cs = opt(cs, 
+                vec![
+                    Opt::ScalarizeVars,
+                    Opt::Flatten,
+                    Opt::Sha,
+                    Opt::ConstantFold(Box::new([])),
+                    Opt::Flatten,
+                    Opt::Inline,
+                    // Tuples must be eliminated before oblivious array elim
+                    Opt::Tuple,
+                    Opt::ConstantFold(Box::new([])),
+                    Opt::Obliv,
+                    // The obliv elim pass produces more tuples, that must be eliminated
+                    Opt::Tuple,
+                    Opt::LinearScan,
+                    // The linear scan pass produces more tuples, that must be eliminated
+                    Opt::Tuple,
+                    Opt::Flatten,
+                    Opt::ConstantFold(Box::new([])),
+                    Opt::Inline,
+                ],
+            );
+    
+            let (mut prover_data, verifier_data) = to_r1cs(cs.get("main").clone(), cfg());
+            prover_data.r1cs = reduce_linearities(prover_data.r1cs, cfg());
+            // println!("r1cs: {:#?}", prover_data.r1cs);
+    
+            let r1cs = transform_circ_r1cs_to_r1cs(&prover_data.r1cs);
+            println!("num of variables: {}", r1cs.num_variables);
+            println!("num of aux: {}", r1cs.num_aux);   
+            println!("num of inputs: {}", r1cs.num_inputs);   
+            
+            let new_map = prover_data.precompute.eval(&inputs_map);
+            prover_data.r1cs.check_all(&new_map);
+            
+            let mut witness_values = get_witness(&new_map, &prover_data);
+            let mut circuit = get_circuit(&r1cs, &prover_data, &mut witness_values);
+            
+            let translator =
+                NoirHalo2Translator::<Fr> { circuit, witness_values, _marker: PhantomData::<Fr> };
+            let dimension = DimensionMeasurement::measure(&translator).unwrap();
+    
+            let k = dimension.k();
+            let params = fs::gen_srs(k);
+            
+            let circuit_cost = CircuitCost::<G2, NoirHalo2Translator<Fr>>::measure(k as usize, &translator);
+            
+            
+            println!("circuit cost: {:?}", circuit_cost);
+            // Generating vkey
+            let vk_start_time = Instant::now();
+            let vk = keygen_vk(&params, &translator).unwrap();
+            let vk_time = vk_start_time.elapsed();
+    
+            // Generating pkey
+            let pk_start_time = Instant::now();
+            let pk = keygen_pk(&params, vk, &translator).unwrap();
+            let pk_time = pk_start_time.elapsed();
+    
+            // Creating the proof
+            let proof_start_time = Instant::now();
+            let proof = gen_proof(&params, &pk, translator);
+            let proof_time = proof_start_time.elapsed();
+            let proof_size = proof.len();
+    
+            // Verifying
+            let verify_start_time = Instant::now();
+            check_proof(&params, pk.get_vk(), &proof, true);
+            let verify_time = verify_start_time.elapsed();
+    
+            let cost = Cost {
+                // mockprover_verified: true,
+                circuit_cost: circuit_cost,
+                pk_time: pk_time.as_secs_f64(),
+                vk_time: vk_time.as_secs_f64(),
+                proof_time: proof_time.as_secs_f64(),
+                proof_size: proof_size,
+                verify_time: verify_time.as_secs_f64(),
+            };
+            
+            proof_times.push(cost.proof_time);
+            verify_times.push(cost.verify_time);
+            ks.push(k);
+            proof_sizes.push(cost.proof_size);
+            num_of_rows.push(2_i32.pow(k));
+            num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
+                extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
+                extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());
+    
+        }
+
+        println!(
+            "program, k, num_of_rows, num_of_columns, proof_time, proof_size, verify_time"
+        );
+        for (i, program) in test_dirs_names.iter().enumerate() {
+            println!(
+                "{},{},{},{},{},{},{}",
+                program,
+                ks[i],
+                num_of_rows[i],
+                num_of_columns[i],
+                proof_times[i],
+                proof_sizes[i],
+                verify_times[i]
+            );
+        }
+    }
+
     #[test]
     fn circom() {
         use std::env;
@@ -227,7 +388,12 @@ mod test {
             "Decoder",
             "MultiAND",
             "MultiMux",
-            "num2bits"
+            "num2bits",
+            "BigAdd",
+            "BigModSumThree",
+            "BigModSumFour",
+            "ModProd",
+            "BigSubModP",
         ];
         
         let mut proof_times = Vec::new();
@@ -243,13 +409,16 @@ mod test {
                 std::fs::canonicalize(format!("./example/{benchmark}/circuit.circom"))
                     .unwrap();
             let path = path.to_str().unwrap();
-
+            
+            println!("Compiling circom circuit: {}", path);
             let status = Command::new("circom")
                 .arg(path)
                 .arg("--r1cs")
                 .arg("--wasm")
                 .arg("--sym")
                 .arg("--c")
+                .arg("--output")
+                .arg(format!("./example/{benchmark}/"))
                 .stdout(Stdio::null())
                 .status()
                 .expect("failed to execute circom");
@@ -260,6 +429,22 @@ mod test {
                 eprintln!("circom failed with status: {:?}", status);
             }
             
+            let status = Command::new("node")
+                .arg(format!("./example/{benchmark}/circuit_js/generate_witness.js"))
+                .arg(format!("./example/{benchmark}/circuit_js//circuit.wasm"))
+                .arg(format!("./example/{benchmark}/input.json"))
+                .arg(format!("./example/{benchmark}/circuit_js/witness.wtns"))
+                .stdout(Stdio::null())
+                .status()
+                .expect("failed to execute generate_witness.js");
+
+            if status.success() {
+                println!("witness generated successfully");
+            } else {
+            eprintln!("witness generation failed with status: {:?}", status);
+            }
+                
+                
             let r1cs = format!("example/{}/circuit.r1cs", benchmark).clone();
             let r1cs = r1cs.as_str();
             let wtns = format!("example/{}/circuit_js/witness.wtns", benchmark).clone();
@@ -267,6 +452,8 @@ mod test {
             
             // get circuit
             let (circuit, witness_values) = circom::get_circom(r1cs, wtns).unwrap();
+
+            // println!("witness values: {:?}", witness_values);
 
             // instantiate halo2 circuit
             let translator =
@@ -313,7 +500,7 @@ mod test {
             verify_times.push(cost.verify_time);
             ks.push(k);
             proof_sizes.push(cost.proof_size);
-            num_of_rows.push(extract_usize_field(&cost.circuit_cost, "max_rows").unwrap());
+            num_of_rows.push(2_i32.pow(k));
             num_of_columns.push(extract_usize_field(&cost.circuit_cost, "num_fixed_columns").unwrap() +
                 extract_usize_field(&cost.circuit_cost, "num_advice_columns").unwrap() +
                 extract_usize_field(&cost.circuit_cost, "num_instance_columns").unwrap());

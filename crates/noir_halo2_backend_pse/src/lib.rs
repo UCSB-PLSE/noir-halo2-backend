@@ -2,6 +2,7 @@ mod acvm_interop;
 mod dimension_measure;
 
 mod assigned_map;
+mod circ_translator;
 mod circom;
 mod circom_circuit;
 mod circom_witness;

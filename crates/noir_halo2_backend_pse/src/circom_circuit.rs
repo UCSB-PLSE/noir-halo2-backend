@@ -1,5 +1,7 @@
 use std::collections::BTreeSet;
 
+use crate::r1cs_reader::R1CS;
+
 use super::r1cs_reader::R1CSFile;
 use ark_ff::Zero;
 use std::ops::Neg;
@@ -11,6 +13,10 @@ use acvm::{
     },
     FieldElement,
 };
+
+// pub(crate) fn acir_circuit_from_r1cs(r1cs: R1CS<ark_bn254::Bn254>, witness: &mut WitnessMap) -> Circuit {
+
+// } 
 
 pub(crate) fn acir_circuit_from_r1cs_file(r1cs_file: R1CSFile<ark_bn254::Bn254>, tmp_wit_index: &mut u32, witness: &mut WitnessMap) -> Circuit {
     let num_public_outputs = r1cs_file.header.n_pub_out;

@@ -215,6 +215,7 @@ impl NoirHalo2Translator<Fr> {
         let main_gate = MainGate::<Fr>::new(config.main_gate_config.clone());
         // loop through public witness indices and expose publicly through main gate
         for (i, _) in public_indices.iter().enumerate() {
+            println!("witness assignments: {:?}", witness_assignments);
             let assigned =
                 witness_assignments.get_index(public_indices[i]).unwrap().last().unwrap();
             main_gate.expose_public(
